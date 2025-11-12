@@ -1,32 +1,46 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+import dj_database_url
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(BASE_DIR / '.env')  # загружаем .env из корня проекта
 
-SECRET_KEY = 'dev-secret-key'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-# Приложения Django
+
 INSTALLED_APPS = [
+    # django default apps...
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
 
-    # Локальные приложения
+    # third-party
+    'rest_framework',
+    'drf_spectacular',
+    'corsheaders',
+    'django_filters',
+
+    # local apps
     'apps.accounts',
     'apps.projects',
     'apps.tasks',
     'apps.comments',
-    'apps.notifications',
     'apps.activity',
+    'apps.notifications',
+    'apps.checking',
+
 ]
 
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    # остальные middleware...
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -36,7 +50,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'config.urls'
+
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+# либо разрешить всё на dev:
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+
 
 TEMPLATES = [
     {
@@ -58,23 +79,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # База данных (PostgreSQL через Docker)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'kanban_db',              # имя базы данных
-        'USER': 'kanban_user',            # имя пользователя
-        'PASSWORD': 'kanban_pass',   # пароль
-        'HOST': 'localhost',           # если Django запущен с хоста
-        'PORT': '5432',
-    }
+    'default': dj_database_url.parse(
+        os.getenv('DATABASE_URL', 'postgres://kanban_user:secret@localhost:5432/kanban')
+    )
 }
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
+}
 
-# Пароли
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-]
+AUTH_USER_MODEL = 'accounts.User'
+
 
 LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
@@ -83,4 +108,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+

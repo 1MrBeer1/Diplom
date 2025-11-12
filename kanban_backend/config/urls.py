@@ -1,13 +1,19 @@
 from django.contrib import admin
-from django.urls import path
-from django.http import JsonResponse
-
-
-def health_check(request):
-    return JsonResponse({"status": "ok", "message": "Kanban backend is running"})
-
+from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/health/', health_check),
+
+    # API schema + docs
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # app APIs
+    path('api/auth/', include('apps.accounts.urls')),  # регистрация / токены / me
+    path('api/projects/', include('apps.projects.urls')),
+    path('api/tasks/', include('apps.tasks.urls')),
+
+    # ... далее подключим остальные модули
 ]
