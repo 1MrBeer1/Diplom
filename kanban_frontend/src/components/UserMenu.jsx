@@ -1,66 +1,60 @@
 import React, { useState } from "react";
-import { logout, getToken } from "../api/auth";
 
 export default function UserMenu({ username, onLogout }) {
   const [open, setOpen] = useState(false);
-
-  const handleLogout = () => {
-    logout();
-    onLogout(); // уведомляем App о логауте
-  };
+  const initial = username.charAt(0).toUpperCase();
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      {/* Кружок с первой буквой */}
+    <div style={{ position: "relative" }}>
       <div
         onClick={() => setOpen(!open)}
         style={{
           width: "40px",
           height: "40px",
           borderRadius: "50%",
-          background: "#4f46e5",
+          background: "#007bff",
           color: "#fff",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontWeight: "bold",
-          fontSize: "18px",
           cursor: "pointer",
+          fontWeight: "bold",
           userSelect: "none",
         }}
       >
-        {username ? username[0].toUpperCase() : "U"}
+        {initial}
       </div>
 
-      {/* Выпадающее меню */}
       {open && (
         <div
           style={{
             position: "absolute",
             right: 0,
-            marginTop: "10px",
+            top: "50px",
             background: "#fff",
             border: "1px solid #ddd",
             borderRadius: "8px",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+            padding: "10px",
             minWidth: "160px",
-            zIndex: 1000,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+            zIndex: 100,
           }}
         >
-          <div style={{ padding: "10px", fontWeight: "bold" }}>{username}</div>
-          <div
-            onClick={handleLogout}
+          <p style={{ margin: "0 0 10px 0", fontWeight: "bold" }}>{username}</p>
+          <button
+            onClick={onLogout}
             style={{
-              padding: "10px",
-              borderTop: "1px solid #eee",
+              width: "100%",
+              padding: "8px",
+              borderRadius: "6px",
+              border: "none",
+              background: "#ff4d4f",
+              color: "#fff",
               cursor: "pointer",
-              color: "#4f46e5",
-              fontWeight: "bold",
-              textAlign: "center",
             }}
           >
-            Logout
-          </div>
+            Выйти
+          </button>
         </div>
       )}
     </div>
