@@ -3,7 +3,7 @@ import { DragDropContext } from "react-beautiful-dnd";
 import { fetchKanban, updateTasksBulk } from "../api/tasks";
 import Column from "./Column";
 
-const DEFAULT_COLUMNS = ["TODO", "IN_PROGRESS", "DONE"];
+const DEFAULT_COLUMNS = ["TODO", "IN_PROGRESS", "CHECING" ,"DONE"];
 
 export default function KanbanBoard({ projectId, showEmptyColumns }) {
   const [columns, setColumns] = useState({});

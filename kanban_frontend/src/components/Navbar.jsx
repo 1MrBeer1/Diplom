@@ -1,35 +1,66 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import UserMenu from "./UserMenu";
+import React, { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { getUserRole, getUsername } from "../api/auth";
 
 export default function Navbar({ onLogout }) {
-  const username = localStorage.getItem("username") || "User";
-  const role = localStorage.getItem("role") || "Employee";
+  const navigate = useNavigate();
+  const role = getUserRole();
+  const username = getUsername() || "User";
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const initial = username.charAt(0).toUpperCase();
 
   return (
-    <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px 20px", background: "#f7f9fc", borderBottom: "1px solid #ddd" }}>
-      <div style={{ display: "flex", gap: "15px" }}>
-  <Link to="/">Dashboard</Link>
-  <Link to="/projects">Projects</Link>
-  <Link to="/my-tasks">My Tasks</Link>
+    <nav className="navbar">
+      <div className="navbar-left">
+        <div
+          className="logo"
+          onClick={() => navigate("/")}
+          title="Перейти на дашборд"
+          role="button"
+          tabIndex={0}
+        >
+          KANBAN — FLOW
+        </div>
 
-  {(role === "CEO" || role === "Admin") && (
-    <>
-      <Link to="/create-project">Создать проект</Link>
-      <Link to="/manage-heads">Назначить начальников</Link>
-      <Link to="/create-user">Создать пользователя</Link>
-      <Link to="/edit-user">Редактировать пользователя</Link>
-    </>
-  )}
+        <NavLink to="/" end className="navlink">
+          Dashboard
+        </NavLink>
 
-  {role && role.startsWith("Head") && (
-    <Link to="/create-task">Создать задачу</Link>
-  )}
+        <NavLink to="/projects" className="navlink">
+          Projects
+        </NavLink>
 
-  {role === "Admin" && <Link to="/system-metrics">Метрики</Link>}
-</div>
+        <NavLink to="/my-tasks" className="navlink">
+          My Tasks
+        </NavLink>
 
-      <UserMenu username={username} onLogout={onLogout} />
+        {/* Менеджмент пользователей — видит CEO и Admin */}
+        {(role === "CEO" || role === "Admin") && (
+          <NavLink to="/users" className="navlink">
+            Users
+          </NavLink>
+        )}
+      </div>
+
+      <div className="navbar-right">
+        <div
+          className="avatar"
+          onClick={() => setMenuOpen((s) => !s)}
+          title={username}
+        >
+          {initial}
+        </div>
+
+        {menuOpen && (
+          <div className="dropdown" onMouseLeave={() => setMenuOpen(false)}>
+            <p style={{ marginBottom: 8, color: "var(--text-muted)" }}>{username}</p>
+            <button onClick={() => { onLogout(); navigate("/"); }}>
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }

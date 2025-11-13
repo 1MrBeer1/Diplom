@@ -1,47 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { getToken, logout } from "../api/auth";
-import axios from "axios";
+import { fetchMyTasks } from "../api/tasks";
+import { useNavigate } from "react-router-dom";
+import { getUserRole } from "../api/auth";
+import TaskCard from "../components/TaskCard";
+
+
 
 export default function MyTasks() {
-  const [tasks, setTasks] = useState([]);
-  const [error, setError] = useState(null);
+  const [tasks, setTasks] = useState(null);
+  const navigate = useNavigate();
+  const role = getUserRole();
 
   useEffect(() => {
-    async function fetchTasks() {
-      try {
-        const res = await axios.get("http://127.0.0.1:8000/api/tasks/my-tasks/", {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        });
-        setTasks(res.data || []);
-      } catch (err) {
-        if (err.response?.status === 401) {
-          // Если токен невалидный — автоматически логаут
-          logout();
-          window.location.reload(); // вернем на страницу логина
-        } else {
-          console.error(err);
-          setTasks([]); // если другая ошибка — просто пустой список
-          setError("Не удалось загрузить задачи.");
-        }
-      }
-    }
-
-    fetchTasks();
+    fetchMyTasks().then(setTasks).catch(() => setTasks([]));
   }, []);
 
-  if (error) return <div>{error}</div>;
-  if (!tasks.length) return <div>У вас нет назначенных задач.</div>;
-
   return (
-    <div>
-      <h2>My Tasks</h2>
-      <ul>
-        {tasks.map((task) => (
-          <li key={task.id}>
-            <strong>{task.title}</strong> — {task.project_name || "Без проекта"}
-          </li>
-        ))}
-      </ul>
+    <div style={{ padding: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+        <h2>My Tasks</h2>
+        {(role === "CEO" || role === "Admin" || role.startsWith("Head")) && (
+          <button className="primary-btn" onClick={() => navigate("/tasks/create")}>Create task</button>
+        )}
+      </div>
+
+      {!tasks && <p style={{ color: "var(--text-muted)" }}>Загрузка...</p>}
+      {Array.isArray(tasks) && tasks.length === 0 && (
+        <div style={{ color: "var(--text-muted)" }}>У вас пока нет задач</div>
+      )}
+
+      {Array.isArray(tasks) && tasks.map(t => <TaskCard key={t.id} task={t} />)}
     </div>
   );
 }
