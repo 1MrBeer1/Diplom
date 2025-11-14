@@ -1,4 +1,4 @@
-import api from "axiosClient.js";
+import api from "./axiosClient";
 
 export async function fetchProjects() {
   return (await api.get("projects/")).data;
