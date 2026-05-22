@@ -1,9 +1,5 @@
-__pycache__/
-*.pyc
 .env
-db_data/
-postgres_data/
+__pycache__/
 node_modules/
-frontend/kanban_desk/build/
-.vscode/
-.idea/
+.venv/
+dist/
